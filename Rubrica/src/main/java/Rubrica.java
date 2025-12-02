@@ -15,75 +15,103 @@ public class Rubrica extends JFrame implements ActionListener {
     JScrollPane scroll = new JScrollPane(rubrica);
 
 
-    JButton aggiungi = new JButton("+");
-    JLabel rubricaLabel = new JLabel("Rubrica dei contatti");
+    JButton aggiungi = new JButton("Aggiungi");
     JButton modifica = new JButton("Modifica");
     JButton elimina = new JButton("Elimina");
 
 
 
-    Rubrica(){
+    Rubrica() {
         setTitle("Rubrica");
-        setBounds(20,30,500,700);
-
-        setMinimumSize(new Dimension(500, 700));
-        setLayout(null);
-
-        aggiungi.setActionCommand("Aggiungi");
-        aggiungi.setBounds(20,40,55,55);
-        aggiungi.addActionListener(this);
-        add(aggiungi);
-
-        modifica.setBounds(20, 110, 120, 40);
-        modifica.setActionCommand("Modifica");
-        modifica.addActionListener(this);
-        add(modifica);
-
-        elimina.setBounds(20, 170, 120, 40);
-        elimina.setActionCommand("Elimina");
-        elimina.addActionListener(this);
-        add(elimina);
-
-        int paddingRight = 50;
-        int paddingBottom = 50;
-
-        int x = 160; // posizione X iniziale
-        int y = 50;  // posizione Y iniziale
-        int width = getWidth() - x - paddingRight;   // larghezza = finestra - X - paddingRight
-        int height = getHeight() - y - paddingBottom; // altezza = finestra - Y - paddingBottom
-        scroll.setBounds(x, y, width, height);
-
-        this.addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-
-                int width = getWidth() - x - paddingRight;
-                int height = getHeight() - y - paddingBottom;
-
-                scroll.setBounds(x, y, width, height);
-            }
-        });
-
-        add(scroll);
-        setVisible(true);
+        setBounds(20, 30, 500, 700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
+        // Layout principale
+        setLayout(new BorderLayout());
+
+        // ---------- PANNELLO SUPERIORE ----------
+        JPanel pannelloSup = new JPanel();
+        pannelloSup.setLayout(new BorderLayout());
+        pannelloSup.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Sotto-pannello per i BOTTONI
+        JPanel pannelloBottoni = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+
+        aggiungi.setActionCommand("Aggiungi");
+        aggiungi.addActionListener(this);
+        pannelloBottoni.add(aggiungi);
+
+        modifica.setActionCommand("Modifica");
+        modifica.addActionListener(this);
+        pannelloBottoni.add(modifica);
+
+        elimina.setActionCommand("Elimina");
+        elimina.addActionListener(this);
+        pannelloBottoni.add(elimina);
+
+        pannelloSup.add(pannelloBottoni, BorderLayout.NORTH);
+
+        // ----------- BARRA DI RICERCA ---------------
+        JPanel pannelloSearch = new JPanel(new BorderLayout());
+        pannelloSearch.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+
+        JTextField searchField = new JTextField();
+        pannelloSearch.add(new JLabel("   Cerca: "), BorderLayout.WEST);
+        pannelloSearch.add(searchField, BorderLayout.CENTER);
+
+        pannelloSup.add(pannelloSearch, BorderLayout.SOUTH);
+
+        add(pannelloSup, BorderLayout.NORTH);
+
+
+        // ---------- LISTA CONTATTI (PANNELLO INFERIORE) ----------
+        JPanel pannelloInf = new JPanel(new BorderLayout());
+        pannelloInf.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        scroll = new JScrollPane(rubrica);
+        pannelloInf.add(scroll, BorderLayout.CENTER);
+
+        add(pannelloInf, BorderLayout.CENTER);
+
+        // ----------- RENDERER GRAFICO ------------
         this.rubrica.setCellRenderer(new DefaultListCellRenderer() {
             @Override
-            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value,
-            int index, boolean isSelected, boolean cellHasFocus) {
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 Contatto c = (Contatto) value;
                 label.setText(c.getNome() + " " + c.getCognome() + " - " + c.getNumero());
-                label.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, java.awt.Color.GRAY));
-
-                label.setFont(new java.awt.Font("Arial", Font.PLAIN, 16));
+                label.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+                label.setFont(new Font("Arial", Font.PLAIN, 16));
                 return label;
             }
         });
 
-        this.rubrica.setFixedCellHeight(30);
+        rubrica.setFixedCellHeight(30);
+
+        // ---------- FILTRO RICERCA ----------
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void aggiornaFiltro() {
+                String text = searchField.getText().toLowerCase();
+                modello.clear();
+                for (Contatto c : contacts) {
+                    if (c.getNome().toLowerCase().contains(text) ||
+                            c.getCognome().toLowerCase().contains(text) ||
+                            c.getNumero().contains(text)) {
+
+                        modello.addElement(c);
+                    }
+                }
+            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { aggiornaFiltro(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { aggiornaFiltro(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { aggiornaFiltro(); }
+        });
+
+        setVisible(true);
     }
+
 
 
     public void aggiungi(){
